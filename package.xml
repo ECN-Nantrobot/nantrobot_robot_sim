@@ -12,6 +12,59 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
+  <!-- Basic ROS dependencies -->
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>twist_mux</exec_depend>
+  <exec_depend>twist-stamper</exec_depend>
+  <exec_depend>joy_linux</exec_depend>
+
+  <!-- Robot description and state -->
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>tf_transformations</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
+  <!-- Visualization -->
+  <exec_depend>rviz2</exec_depend>
+
+  <!-- Visualization -->
+  <exec_depend>ros-gz</exec_depend>
+  <exec_depend>gz-ros2-control</exec_depend>
+
+  <!-- Serial communication for ESP -->
+  <exec_depend>serial_driver</exec_depend>
+  <exec_depend>python3-serial</exec_depend>
+
+  <!-- Control packages -->
+  <exec_depend>ros2_control</exec_depend>
+  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  
+  <!-- GUI tools -->
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-matplotlib</exec_depend>
+  
+  <!-- Input device handling for FlySky controller -->
+  <exec_depend>python3-evdev</exec_depend>
+
+
+  <!-- for camera -->
+  <exec_depend>jinja2</exec_depend>
+  <exec_depend>pyyaml</exec_depend>
+  <exec_depend>python3-ply</exec_depend> 
+  <exec_depend>python-catkin-pkg</exec_depend> 
+
+  <!-- for raspi -->
+  <exec_depend>python-rpi.gpio-pip</exec_depend>
+
+
   <depend>yaml-cpp</depend>
 
   <export>

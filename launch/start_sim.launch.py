@@ -1,3 +1,31 @@
+"""
+@file start_sim.launch.py
+@brief Simulation startup launch file for ROS2.
+
+This launch file sets up a complete simulation environment including Gazebo,
+RViz with custom button panel, and necessary bridges for communication.
+It provides configurable world loading and button panel configuration.
+
+Usage example:
+    ros2 launch nantrobot_robot_sim start_sim.launch.py world:=/path/to/world.world button_config:=/path/to/buttons.yaml
+
+Launch arguments:
+    - world: World file to load in Gazebo (default: empty.world from package)
+    - button_config: Button configuration YAML file for RViz panel (default: default_button.yaml)
+
+Components launched:
+    - Gazebo simulator with specified world
+    - ROS-Gazebo bridges for clock and TF
+    - RViz2 with custom button panel
+    - Table mesh publisher for visualization
+
+@note The button panel is from the nantrobot_rviz_panel package
+
+@version 1.0
+@date 04/01/2026
+
+@author Alexis MORICE
+"""
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
