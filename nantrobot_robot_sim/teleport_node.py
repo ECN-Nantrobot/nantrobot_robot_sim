@@ -9,7 +9,44 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 
-import tf_transformations
+
+def quaternion_to_euler(x, y, z, w):
+    """Convert quaternion to Euler angles (roll, pitch, yaw)."""
+    # Roll (x-axis rotation)
+    sinr_cosp = 2 * (w * x + y * z)
+    cosr_cosp = 1 - 2 * (x * x + y * y)
+    roll = math.atan2(sinr_cosp, cosr_cosp)
+
+    # Pitch (y-axis rotation)
+    sinp = 2 * (w * y - z * x)
+    if abs(sinp) >= 1:
+        pitch = math.copysign(math.pi / 2, sinp)  # Use 90 degrees if out of range
+    else:
+        pitch = math.asin(sinp)
+
+    # Yaw (z-axis rotation)
+    siny_cosp = 2 * (w * z + x * y)
+    cosy_cosp = 1 - 2 * (y * y + z * z)
+    yaw = math.atan2(siny_cosp, cosy_cosp)
+
+    return roll, pitch, yaw
+
+
+def euler_to_quaternion(roll, pitch, yaw):
+    """Convert Euler angles to quaternion (x, y, z, w)."""
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+
+    w = cr * cp * cy + sr * sp * sy
+    x = sr * cp * cy - cr * sp * sy
+    y = cr * sp * cy + sr * cp * sy
+    z = cr * cp * sy - sr * sp * cy
+
+    return x, y, z, w
 
 
 class TeleportNode(Node):
@@ -92,13 +129,12 @@ class TeleportNode(Node):
         # Desired corrected pose
         x_des = msg.pose.position.x
         y_des = msg.pose.position.y
-        target_quat = [
+        _, _, theta_des = quaternion_to_euler(
             msg.pose.orientation.x,
             msg.pose.orientation.y,
             msg.pose.orientation.z,
             msg.pose.orientation.w,
-        ]
-        _, _, theta_des = tf_transformations.euler_from_quaternion(target_quat)
+        )
 
         # Current Gazebo odom pose BEFORE teleport
         x_g = self.current_robot_x
@@ -120,11 +156,11 @@ class TeleportNode(Node):
         self.position_offset_x = x0
         self.position_offset_y = y0
 
-        q0 = tf_transformations.quaternion_from_euler(0.0, 0.0, theta0)
-        self.orientation_offset_x = q0[0]
-        self.orientation_offset_y = q0[1]
-        self.orientation_offset_z = q0[2]
-        self.orientation_offset_w = q0[3]
+        q0_x, q0_y, q0_z, q0_w = euler_to_quaternion(0.0, 0.0, theta0)
+        self.orientation_offset_x = q0_x
+        self.orientation_offset_y = q0_y
+        self.orientation_offset_z = q0_z
+        self.orientation_offset_w = q0_w
 
         # Teleport model in Gazebo to the requested corrected pose position/orientation
         self._teleport_in_gazebo(x_des, y_des, msg.pose.orientation)
@@ -138,26 +174,24 @@ class TeleportNode(Node):
         # Store latest Gazebo pose
         self.current_robot_x = msg.pose.pose.position.x
         self.current_robot_y = msg.pose.pose.position.y
-        current_quat = [
+        _, _, theta = quaternion_to_euler(
             msg.pose.pose.orientation.x,
             msg.pose.pose.orientation.y,
             msg.pose.pose.orientation.z,
             msg.pose.pose.orientation.w,
-        ]
-        _, _, theta = tf_transformations.euler_from_quaternion(current_quat)
+        )
         self.current_robot_theta = theta
         self.have_gz_odom = True
 
         # Extract offsets (x0, y0, theta0)
         x0 = self.position_offset_x
         y0 = self.position_offset_y
-        offset_quat = [
+        _, _, theta0 = quaternion_to_euler(
             self.orientation_offset_x,
             self.orientation_offset_y,
             self.orientation_offset_z,
             self.orientation_offset_w,
-        ]
-        _, _, theta0 = tf_transformations.euler_from_quaternion(offset_quat)
+        )
 
         # Apply inverse offset:
         # (x', y') = R(-theta0) * ([x, y] - [x0, y0])
@@ -172,7 +206,7 @@ class TeleportNode(Node):
         y_new = -dx * sin0 + dy * cos0
         theta_new = theta - theta0
 
-        new_quat = tf_transformations.quaternion_from_euler(0.0, 0.0, theta_new)
+        new_quat_x, new_quat_y, new_quat_z, new_quat_w = euler_to_quaternion(0.0, 0.0, theta_new)
 
         # Build outgoing odom (avoid mutating the incoming message instance)
         out = Odometry()
@@ -183,10 +217,10 @@ class TeleportNode(Node):
 
         out.pose.pose.position.x = x_new
         out.pose.pose.position.y = y_new
-        out.pose.pose.orientation.x = new_quat[0]
-        out.pose.pose.orientation.y = new_quat[1]
-        out.pose.pose.orientation.z = new_quat[2]
-        out.pose.pose.orientation.w = new_quat[3]
+        out.pose.pose.orientation.x = new_quat_x
+        out.pose.pose.orientation.y = new_quat_y
+        out.pose.pose.orientation.z = new_quat_z
+        out.pose.pose.orientation.w = new_quat_w
 
         # Namespace prefix frames like in your EspActionSimulation
         namespace_prefix = f"{self.robot_namespace}/" if self.robot_namespace else ""
