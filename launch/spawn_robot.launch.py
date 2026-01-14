@@ -165,7 +165,7 @@ def generate_launch_description():
              teleport_x,
              ', y: ',
              teleport_y, 
-             ', z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}']
+             ', z: 0.0}, orientation: {x: 0.0, y: 0.0, z: -0.7071068, w: 0.7071068}}}']
         ],
         shell=False
     )
